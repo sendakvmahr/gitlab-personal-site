@@ -39,6 +39,10 @@ h1, h3{
 	font-size: 50pt;
 }
 
+h2 {
+	font-size: 35px;
+}
+
 img, .pixel { 
     image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
     image-rendering: -moz-crisp-edges;          /* Firefox                        */
@@ -47,7 +51,6 @@ img, .pixel {
     image-rendering: pixelated; 				/* Chrome */
     image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
     -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
-
 }
 .wrapper {
 	font-family: 'Alice', serif;
@@ -117,7 +120,6 @@ img, .pixel {
     width: 100%;
 }
 
-
 #trees {
 	position: absolute;
 	bottom: 0;
@@ -178,4 +180,28 @@ a:focus {
 .text-wrapper .sample {
     padding-left: 0;
     padding-top: .3em;
+}
+
+.pixel-imgs{
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.img-wrapper {
+
+	display: flex;
+	margin: auto;
+	justify-content: center;
+	
+}
+
+
+
+.img-wrapper .original {
+	border: 24px solid transparent;
+	border-image: url("../images/border.png");
+	border-image-slice: 8;
+	border-image-repeat: round;
+	margin-top: 30px;
 }
