@@ -3,9 +3,23 @@
 	<meta http-equiv="content-type" content="text/html; charset=utf-8"> 
     <link rel="icon" type="image/png" href="./images/favicon.png?" />
 	<title>Sendak Vivian Mahr</title> 
-	<script src="./js/util.js"></script>
-	<script id="vertex" type="shader"></script>
-	<script id="fragment" type="shader"></script>
+	<script id="vertex" type="shader">
+		attribute vec2 a_position;
+		varying vec2 v_texCoord;
+		attribute vec2 a_texCoord;
+
+		void main() {
+			v_texCoord = a_texCoord;
+			gl_Position = vec4(a_position, 0, 1.0);
+		}
+	</script>
+	<script id="fragment" type="shader">
+		uniform sampler2D u_image;
+		varying vec2 v_texCoord;
+		void main() {
+		   gl_FragColor = texture2D(u_image, v_texCoord);
+		}
+	</script>
 </head> 
 <body> 
 	<canvas id="body">
@@ -25,5 +39,6 @@
 			width: 100%;
 		}
 	</style>
+	<script src="./js/util.js"></script>
 </body> 
 </html> 
