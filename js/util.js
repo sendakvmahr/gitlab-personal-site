@@ -11,40 +11,43 @@ function startLoading() {
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
             var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-            if (success) {
-                return shader;
-            }
+            if (success) { return shader; }
             console.log(gl.getShaderInfoLog(shader));
             gl.deleteShader(shader);
         }
-
         function createProgram(gl, vertexShader, fragmentShader) {
             var program = gl.createProgram();
             gl.attachShader(program, vertexShader);
             gl.attachShader(program, fragmentShader);
             gl.linkProgram(program);
             var success = gl.getProgramParameter(program, gl.LINK_STATUS);
-            if (success) {
-                return program;
-            }
+            if (success) { return program; }
             console.log(gl.getProgramInfoLog(program));
             gl.deleteProgram(program);
         }
-
-        function shadersToProgram(gl, vSource, fSource) {
+        function shadersToProgram(gl, vSource, fSource){
             let vShader = createShader(gl, gl.VERTEX_SHADER, vSource);
             let fShader = createShader(gl, gl.FRAGMENT_SHADER, fSource);
             return createProgram(gl, vShader, fShader);
         }
+        function resizeCanvasToDisplaySize(canvas) {
+            canvas.width  = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
 
-        function loadAttributesAndBuffers(attAndBuff) {
-            let keys = Object.keys(attAndBuff);
+
+         function loadAttributesAndBuffers(gl, anb, program){    
+            let keys = Object.keys(anb);
             for (let k in keys) {
-                let obj = attAndBuff[keys[k]];
+                let obj = anb[keys[k]];
                 obj.location = gl.getAttribLocation(program, keys[k]);
                 obj.buffer = gl.createBuffer();
+                gl.enableVertexAttribArray(obj.location);
+                setBuffer(gl, obj);
+                configVAttribPointer(gl, obj)
             }
         }
+
 
         function setBuffer(gl, att) {
             gl.bindBuffer(gl.ARRAY_BUFFER, att.buffer);
