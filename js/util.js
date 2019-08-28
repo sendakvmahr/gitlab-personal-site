@@ -34,9 +34,8 @@ function startLoading() {
             canvas.width  = canvas.clientWidth;
             canvas.height = canvas.clientHeight;
         }
-
-
-         function loadAttributesAndBuffers(gl, anb, program){    
+        // loaders
+        function loadAttributesAndBuffers(gl, anb, program){    
             let keys = Object.keys(anb);
             for (let k in keys) {
                 let obj = anb[keys[k]];
@@ -47,11 +46,27 @@ function startLoading() {
                 configVAttribPointer(gl, obj)
             }
         }
-
-
-        function setBuffer(gl, att) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, att.buffer);
+        function loadCanvasImages(gl, canvasImages) {
+            let keys = Object.keys(canvasImages);
+            for (let k in keys) {
+                let kkey = keys[k];
+                let img = canvasImages[kkey].img;
+                let ctx = document.createElement('canvas').getContext("2d");
+                setCanvasImage(ctx, img);
+                canvasImages[kkey].ctx = ctx;
+                canvasImages[kkey].canvas = ctx.canvas;
+                canvasImages[kkey].texture = blankTexture(gl);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ctx.canvas);
+            }
         }
+        function loadUnis(gl, program, unis) {
+            var keys  = Object.keys(unis);
+            for (let k in keys) {
+                unis[keys[k]] = gl.getUniformLocation(program, unis[keys[k]]);
+            }
+        }
+
+        function setBuffer(gl, att) { gl.bindBuffer(gl.ARRAY_BUFFER, att.buffer); }
 
         function setRect(gl, x1, y1, width, height) {
             let x2 = x1 + width,
@@ -68,126 +83,132 @@ function startLoading() {
         }
 
 
-        function setCanvasTexture(gl, ctx, tex) {
-            setBuffer(gl, tex);
+        function setRectangle(gl, posAtt, x1, y1, width, height) {
+            setBuffer(gl, posAtt)
+            var x2 = x1 + width;
+            var y2 = y1 + height;
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-                0.0, 0.0,
-                1.0, 0.0,
-                0.0, 1.0,
-                0.0, 1.0,
-                1.0, 0.0,
-                1.0, 1.0
+                x1, y1,
+                x2, y1,
+                x1, y2,
+                x1, y2,
+                x2, y1,
+                x2, y2,
             ]), gl.STATIC_DRAW);
+        }
+
+        function setTextureCoord(gl, texCoord) {
+            setBuffer(gl, texCoord);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                0.0,  0.0,
+                1.0,  0.0,
+                0.0,  1.0,
+                0.0,  1.0,
+                1.0,  0.0,
+                1.0,  1.0,
+            ]), gl.STATIC_DRAW);
+        }
+
+        function blankTexture(gl) {
             var texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ctx.canvas);
+            return texture;
         }
-
-        function setColor(gl, ctx, color, tex) {
-            ctx.fillStyle = color;
-            ctx.fillRect(0, 0, 1, 1);
-            setCanvasTexture(gl, ctx, tex);
-        }
-
-        function setImage(gl, img, ctx, tex) {
+        function setCanvasImage(ctx, img) {
             ctx.canvas.width = img.width;
             ctx.canvas.height = img.height;
             ctx.width = img.width;
             ctx.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            setCanvasTexture(gl, ctx, tex);
+            ctx.drawImage(img, 0, 0); 
         }
 
-        function drawRect(gl, x, y, width, height, att, canvas, color, tex) {
-            setColor(gl, canvas, color, tex);
-            setBuffer(gl, att);
-            setRect(gl, x, y, width, height);
-            gl.vertexAttribPointer(att.location, att.numComponents, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        function configVAttribPointer(gl, att) {
+            gl.vertexAttribPointer(att.location, att.numComponents, att.type, att.normalize, att.stride, att.offset)
         }
 
-        function drawImage(gl, img, xSrc, ySrc, wSrc, lSrc, xDest, yDest, wDest, hDest, canvas, tex, pos) {
-            setImage(gl, img, canvas, tex);
-            setBuffer(gl, pos);
-            setRect(gl, xDest, yDest, wDest, hDest);
-            gl.vertexAttribPointer(pos.location, pos.numComponents, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-        }
-
-
-        var canvas = document.getElementById("body");
-        var gl = canvas.getContext("webgl");
-        var program = shadersToProgram(gl, document.getElementById("vertex").text, document.getElementById("fragment").text);
-        var canvases = {
-            color: document.createElement('canvas').getContext("2d"),
-            texture1: document.createElement('canvas').getContext("2d")
-        }
-        canvases.color.canvas.height = 1;
-        canvases.color.canvas.width = 1;
-
-        var attAndBuff = {
-            a_position: {
-                buffer: "",
-                location: "",
-                numComponents: 2
-            },
-            a_texCoord: {
-                buffer: "",
-                location: "",
-                numComponents: 2
+        render(assets)
+        function render(assets) {
+        	console.log(assets);
+        	var image = assets.images[0];
+        	console.log(image);
+            var canvas = document.getElementById("body");
+            //var gl = canvas.getContext("webgl", {antialias: false});
+            var gl = canvas.getContext("webgl");
+            if (!gl) { return; }
+            var program = shadersToProgram(gl, document.getElementById("vertex").text, document.getElementById("fragment").text);
+            var anb = { 
+                a_position: { buffer: "", location: "", numComponents: 2, type: gl.FLOAT, normalize: false, stride: 0, offset: 0 },
+                a_texCoord: { buffer: "", location: "", numComponents: 2, type: gl.FLOAT, normalize: false, stride: 0, offset: 0 }
+            } 
+            var unis = {
+                u_textureSize: "u_textureSize",
+                u_matrix: "u_matrix",
             }
-        }
-
-        var globalUniforms = {};
-        var objs = [{}];
-
-        var offset = -1;
-        var step = .001;
-
-        function resizeCanvasToDisplaySize(canvas, multiplier) {
-            multiplier = multiplier || 1;
-            const width = canvas.clientWidth * multiplier | 0;
-            const height = canvas.clientHeight * multiplier | 0;
-            if (canvas.width !== width || canvas.height !== height) {
-                canvas.width = width;
-                canvas.height = height;
-                return true;
+            var canvasImages = {
+                fire: {
+                    img: image,
+                    ctx: "", 
+                    canvas: "",
+                    texture: ""
+                }
+            } 
+            // need to assign textures before objects reference them
+            loadAttributesAndBuffers(gl, anb, program);
+            loadCanvasImages(gl, canvasImages);
+            loadUnis(gl, program, unis);
+            var objects = [{
+                scale:[.5, .5],
+                translation: [0, 100],
+                rotation: 45*Math.PI / 180,
+                program: program,
+                texture: canvasImages.fire,
+                x: 0, 
+                y: 30,
+                height: 120,
+                width: 120,
+                primitive: gl.TRIANGLES,
+                offset: 0,
+                count: 6
+            }];
+            
+            draw();
+                
+            function draw(name) {
+                // predraw config
+                resizeCanvasToDisplaySize(gl.canvas);
+                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                var matrix = m3.projection( gl.canvas.clientWidth, gl.canvas.clientHeight);
+                
+                for (let o in objects) {
+                    let obj = objects[o];
+                    // set up shaders
+                    gl.useProgram(obj.program);
+                    // set up texture
+                    gl.uniform2f(unis.u_textureSize, obj.texture.canvas.width, obj.texture.canvas.height);
+                    // matrix math for transformations
+                    let matrix2 = matrix;
+                    matrix2 = m3.multiply(matrix2, m3.translation(obj.translation[0], obj.translation[1]));
+                    matrix2 = m3.multiply(matrix2, m3.rotation(obj.rotation));
+                    matrix2 = m3.multiply(matrix2, m3.scaling(obj.scale[0], obj.scale[1]));
+                    matrix2 = m3.multiply(matrix2, m3.translation(obj.width/2, obj.height/2));
+                    gl.uniformMatrix3fv(unis.u_matrix, false, matrix2);
+                    // Set rect for object to be rendered in
+                    setRectangle(gl, anb.a_position, obj.x, obj.y, obj.width, obj.height);
+                    // Sets texture coord - NOTE THIS SHOULD BE CHANGED FOR ARGUMENTS LATER FOR SPRITESHEETS
+                    setTextureCoord(gl, anb.a_texCoord);
+                    // Sets object texture to be the current one
+                    gl.bindTexture(gl.TEXTURE_2D, obj.texture.texture);
+                    // draws the object
+                    gl.drawArrays(obj.primitive, obj.offset, obj.count);
+                }
+            // window.requestAnimationFrame(draw)
             }
-            return false;
-        }
-        loadAttributesAndBuffers(attAndBuff);
-
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.useProgram(program);
-
-        // find better place to put these, or call "activate all or smthing
-        gl.enableVertexAttribArray(attAndBuff.a_position.location);
-        gl.enableVertexAttribArray(attAndBuff.a_texCoord.location);
-        gl.vertexAttribPointer(attAndBuff.a_texCoord.location, attAndBuff.a_texCoord.numComponents, gl.FLOAT, false, 0, 0);
-
-
-        var r = Math.floor(Math.random() * 255).toString() + ",";
-        var b = Math.floor(Math.random() * 255).toString() + ",";
-        var g = Math.floor(Math.random() * 255).toString() + ",";
-        var rgb = "rgba(" + r + g + b + "1)"
-
-        draw();
-
-
-        function draw() {
-            gl.clearColor(0, 0, 0, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            drawRect(gl, 0 + offset, 0 + offset, .5, .5, attAndBuff.a_position, canvases.color, rgb, attAndBuff.a_texCoord);
-            let img = assets.images[0];
-            // drawImage(gl, img, 0, 0, img.width, img.height, .5 + offset, .5 + offset, .5, .5, canvases.texture1, attAndBuff.a_texCoord, attAndBuff.a_position);
-            // window.requestAnimationFrame(draw);
-            offset += step;
         }
     }
 
@@ -213,6 +234,7 @@ function startLoading() {
             main(assets);
         }
     }
+
 
     var images = [
         "https://github.githubassets.com/images/modules/site/home-illo-team.svg"
