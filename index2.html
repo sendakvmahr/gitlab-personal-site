@@ -5,6 +5,21 @@
 	<title>Sendak Vivian Mahr</title> 
 </head>
 <body>
+	<div style="
+		position: absolute;
+		top: 0;bottom: 0; ;left: 0; right: 0; 
+		background: url('./images/Wire Loop.png');
+		background-size: 192px;
+		background-repeat: repeat-x;
+		 image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+    image-rendering: -moz-crisp-edges;          /* Firefox                        */
+    image-rendering: -o-crisp-edges;            /* Opera                          */
+    image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+    image-rendering: pixelated; /* Chrome */
+    image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+    -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+
+	"></div>
     <canvas id="canvas"></canvas>
     <script id="vshader" type="vshader">
         uniform mat3 u_matrix;
@@ -429,6 +444,9 @@
           border: 1px solid #FF0000;
           width: 400px;
           height: 400px;
+        }
+        body {
+        	background: black;
         }
     </style>
 </body>
