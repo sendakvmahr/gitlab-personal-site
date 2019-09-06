@@ -41,8 +41,12 @@ var wgl = (function () {
       gl.bufferData(gl.ARRAY_BUFFER, (b.data), gl.STATIC_DRAW)
     };
   }                       
-  
-  function createUSetter(gl, program, uniform){var n=program, i=uniform;const r=gl.getUniformLocation(n,i.name),t=i.type,f=i.size>1&&"[0]"===i.name.substr(-3);if(t===gl.FLOAT&&f)return function(n){gl.uniform1fv(r,n)};if(t===gl.FLOAT)return function(n){gl.uniform1f(r,n)};if(t===gl.FLOAT_VEC2)return function(n){gl.uniform2fv(r,n)};if(t===gl.FLOAT_VEC3)return function(n){gl.uniform3fv(r,n)};if(t===gl.FLOAT_VEC4)return function(n){gl.uniform4fv(r,n)};if(t===gl.INT&&f)return function(n){gl.uniform1iv(r,n)};if(t===gl.INT)return function(n){gl.uniform1i(r,n)};if(t===gl.INT_VEC2)return function(n){gl.uniform2iv(r,n)};if(t===gl.INT_VEC3)return function(n){gl.uniform3iv(r,n)};if(t===gl.INT_VEC4)return function(n){gl.uniform4iv(r,n)};if(t===gl.BOOL)return function(n){gl.uniform1iv(r,n)};if(t===gl.BOOL_VEC2)return function(n){gl.uniform2iv(r,n)};if(t===gl.BOOL_VEC3)return function(n){gl.uniform3iv(r,n)};if(t===gl.BOOL_VEC4)return function(n){gl.uniform4iv(r,n)};if(t===gl.FLOAT_MAT2)return function(n){gl.uniformMatrix2fv(r,!1,n)};if(t===gl.FLOAT_MAT3)return function(n){gl.uniformMatrix3fv(r,!1,n)};if(t===gl.FLOAT_MAT4)return function(n){gl.uniformMatrix4fv(r,!1,n)};if((t===gl.SAMPLER_2D||t===gl.SAMPLER_CUBE)&&f){const n=[];for(let i=0;i<info.size;++i)n.push(textureUnit++);return u=getBindPointForSamplerType(gl,t),n=n,function(i){gl.uniform1iv(r,n),i.forEach(function(i,r){gl.activeTexture(gl.TEXTURE0+n[r]),gl.bindTexture(u,i)})}}var u,o;if(t===gl.SAMPLER_2D||t===gl.SAMPLER_CUBE)return function(n,i){return function(t){gl.uniform1i(r,i),gl.activeTexture(gl.TEXTURE0+i),gl.bindTexture(n,t)}}(getBindPointForSamplerType(gl,t),textureUnit++);throw"unknown type: 0x"+t.toString(16)};
+  function getBindPointForSamplerType(gl, type) {
+    if (type === gl.SAMPLER_2D)   return gl.TEXTURE_2D;        // eslint-disable-line
+    if (type === gl.SAMPLER_CUBE) return gl.TEXTURE_CUBE_MAP;  // eslint-disable-line
+    return undefined;
+  }
+  function createUSetter(gl, program, uniform){var n=program; let textureUnit = 0;i=uniform;const r=gl.getUniformLocation(n,i.name),t=i.type,f=i.size>1&&"[0]"===i.name.substr(-3);if(t===gl.FLOAT&&f)return function(n){gl.uniform1fv(r,n)};if(t===gl.FLOAT)return function(n){gl.uniform1f(r,n)};if(t===gl.FLOAT_VEC2)return function(n){gl.uniform2fv(r,n)};if(t===gl.FLOAT_VEC3)return function(n){gl.uniform3fv(r,n)};if(t===gl.FLOAT_VEC4)return function(n){gl.uniform4fv(r,n)};if(t===gl.INT&&f)return function(n){gl.uniform1iv(r,n)};if(t===gl.INT)return function(n){gl.uniform1i(r,n)};if(t===gl.INT_VEC2)return function(n){gl.uniform2iv(r,n)};if(t===gl.INT_VEC3)return function(n){gl.uniform3iv(r,n)};if(t===gl.INT_VEC4)return function(n){gl.uniform4iv(r,n)};if(t===gl.BOOL)return function(n){gl.uniform1iv(r,n)};if(t===gl.BOOL_VEC2)return function(n){gl.uniform2iv(r,n)};if(t===gl.BOOL_VEC3)return function(n){gl.uniform3iv(r,n)};if(t===gl.BOOL_VEC4)return function(n){gl.uniform4iv(r,n)};if(t===gl.FLOAT_MAT2)return function(n){gl.uniformMatrix2fv(r,!1,n)};if(t===gl.FLOAT_MAT3)return function(n){gl.uniformMatrix3fv(r,!1,n)};if(t===gl.FLOAT_MAT4)return function(n){gl.uniformMatrix4fv(r,!1,n)};if((t===gl.SAMPLER_2D||t===gl.SAMPLER_CUBE)&&f){const n=[];for(let i=0;i<info.size;++i)n.push(textureUnit++);return u=getBindPointForSamplerType(gl,t),n=n,function(i){gl.uniform1iv(r,n),i.forEach(function(i,r){gl.activeTexture(gl.TEXTURE0+n[r]),gl.bindTexture(u,i)})}}var u,o;if(t===gl.SAMPLER_2D||t===gl.SAMPLER_CUBE)return function(n,i){return function(t){gl.uniform1i(r,i),gl.activeTexture(gl.TEXTURE0+i),gl.bindTexture(n,t)}}(getBindPointForSamplerType(gl,t),textureUnit++);throw"unknown type: 0x"+t.toString(16)};
   function createSetters(gl, program){
     var atts = {}, 
         unis = {}, 
@@ -84,11 +88,53 @@ var wgl = (function () {
     let keys = Object.keys(canvasImages);
     for (let k in keys) {
       let kkey = keys[k];
+      if (canvasImages[kkey].img === undefined ){ continue; }
       let img = canvasImages[kkey].img;
       let ctx = document.createElement('canvas').getContext("2d");
       setCanvasImage(ctx, img);
       canvasImages[kkey].ctx = ctx;
       canvasImages[kkey].canvas = ctx.canvas;
+      canvasImages[kkey].texture = blankTexture(gl);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ctx.canvas);
+    }
+  }
+  
+  function setCanvasText(ctx, canvasInfo, mainCanvas){
+    ctx.canvas.height = mainCanvas.clientHeight;
+    ctx.canvas.width = canvasInfo.width * mainCanvas.clientWidth;
+    ctx.fillStyle = canvasInfo.color;
+    ctx.font = canvasInfo.font;
+    let words = canvasInfo.text.split(" "), 
+        line = "",
+        x = 0, y = canvasInfo.lineHeight;// 1 lh
+    for(var n = 0; n < words.length; n++) {
+      let testLine = line + words[n] + ' ',
+          metrics = ctx.measureText(testLine),
+          testWidth = metrics.width,
+          maxWidth = ctx.canvas.width;
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += canvasInfo.lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, y);
+  }
+  
+  function loadCanvasText(gl, canvasImages, mainCanvas){
+    let keys = Object.keys(canvasImages);
+    for (let k in keys) {
+      let kkey = keys[k];
+      if (canvasImages[kkey].text === undefined ){ continue; }
+      let img = canvasImages[kkey].img;
+      let ctx = document.createElement('canvas',  {alpha: true} ).getContext("2d");
+      setCanvasText(ctx, canvasImages[kkey], mainCanvas);
+      canvasImages[kkey].ctx = ctx;
+      canvasImages[kkey].canvas = ctx.canvas;
+      var texture = gl.createTexture();
       canvasImages[kkey].texture = blankTexture(gl);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ctx.canvas);
     }
@@ -102,16 +148,15 @@ var wgl = (function () {
 
   function setBuffer(gl, att){ gl.bindBuffer(gl.ARRAY_BUFFER, att.buffer); }
 
-  function setTextureCoord(gl, texAtt) {
-    setBuffer(gl, texAtt);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+  function setTextureCoord() {
+    return[
       0.0,  0.0,
       1.0,  0.0,
       0.0,  1.0,
       0.0,  1.0,
       1.0,  0.0,
       1.0,  1.0
-    ]), gl.STATIC_DRAW);
+    ]
   }
 
   function blankTexture(gl) {
@@ -157,18 +202,17 @@ var wgl = (function () {
   // rewrite using https://github.com/hiddentao/linear-algebra later
   // 2d
   var m3 = (function () {
-    function setRectangle(gl, posAtt, x1, y1, width, height) {
-      setBuffer(gl, posAtt);
+    function setRectangle(x1, y1, width, height) {
       var x2 = x1 + width;
       var y2 = y1 + height;
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      return [
         x1, y1,
         x2, y1,
         x1, y2,
         x1, y2,
         x2, y1,
         x2, y2
-      ]), gl.STATIC_DRAW);
+      ];
     }
 
     function projection(width, height) {
@@ -181,17 +225,23 @@ var wgl = (function () {
       var c = Math.cos(angleR), s = Math.sin(angleR);
       return [c,-s, 0, s, c, 0, 0, 0, 1];
     }
-    function scale(dx, dy){
+    function scalem(dx, dy){
       return [dx, 0, 0, 0, dy, 0, 0, 0, 1];
     }
-   function multiply(n,r){
-     var t=n[0],u=n[1],i=n[2],l=n[3],a=n[4],c=n[5],e=n[6],f=n[7],m=n[8],o=r[0],p=r[1],v=r[2],y=r[3],b=r[4],d=r[5],g=r[6],h=r[7],j=r[8];return[o*t+p*l+v*e,o*u+p*a+v*f,o*i+p*c+v*m,y*t+b*l+d*e,y*u+b*a+d*f,y*i+b*c+d*m,g*t+h*l+j*e,g*u+h*a+j*f,g*i+h*c+j*m]
-   }
+    function multiply(n,r){
+      var t=n[0],u=n[1],i=n[2],l=n[3],a=n[4],c=n[5],e=n[6],f=n[7],m=n[8],o=r[0],p=r[1],v=r[2],y=r[3],b=r[4],d=r[5],g=r[6],h=r[7],j=r[8];return[o*t+p*l+v*e,o*u+p*a+v*f,o*i+p*c+v*m,y*t+b*l+d*e,y*u+b*a+d*f,y*i+b*c+d*m,g*t+h*l+j*e,g*u+h*a+j*f,g*i+h*c+j*m]
+    }
+    function translate(m, dx, dy){ return multiply(m, translation(dx, dy)); };
+    function rotate(m, radians){ return multiply(m, rotation(radians)); };
+    function scale(m, sx, sy){ return multiply(m, scalem(sx, sy)); };
     return {
       setRectangle: setRectangle,
       projection: projection,
       translation: translation,
       rotation: rotation,
+      scalem: scalem,
+      translate: translate,
+      rotate: rotate,
       scale: scale,
       multiply: multiply
       }
@@ -302,6 +352,7 @@ var wgl = (function () {
         //         offset: 0             // offset from beginning
         //   }, etc...
           // }
+    loadCanvasText: loadCanvasText,
     loadCanvasImages: loadCanvasImages, 
         // gl, canvasImages
         // canvasImageFormat = {
