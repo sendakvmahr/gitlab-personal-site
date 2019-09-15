@@ -99,44 +99,64 @@ var wgl = (function () {
     }
   }
   
-  function setCanvasText(ctx, canvasInfo, mainCanvas){
-    ctx.canvas.height = mainCanvas.clientHeight;
+  function setCanvasText(obj, canvasInfo, mainCanvas){
+    let ctx = canvasInfo.ctx;
     ctx.canvas.width = canvasInfo.width * mainCanvas.clientWidth;
-    ctx.fillStyle = canvasInfo.color;
     ctx.font = canvasInfo.font;
     let words = canvasInfo.text.split(" "), 
         line = "",
-        x = 0, y = canvasInfo.lineHeight;// 1 lh
+        x = 0, y = canvasInfo.lineHeight,
+        lines = [],
+        maxWidth = ctx.canvas.width;
     for(var n = 0; n < words.length; n++) {
       let testLine = line + words[n] + ' ',
           metrics = ctx.measureText(testLine),
-          testWidth = metrics.width,
-          maxWidth = ctx.canvas.width;
+          testWidth = metrics.width;
       if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, y);
+        lines.push(line);
         line = words[n] + ' ';
         y += canvasInfo.lineHeight;
       }
-      else {
-        line = testLine;
-      }
+      else { line = testLine; }
     }
-    ctx.fillText(line, x, y);
+    lines.push(line);
+    ctx.canvas.height = y;
+    canvasInfo.height = y;
+    let bgColor = canvasInfo.bgColor;
+    if (bgColor !== undefined && bgColor !== null) {
+      ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.fillStyle = bgColor;
+      ctx.fill();
+    } else {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+    ctx.fillStyle = canvasInfo.color;
+    ctx.font = canvasInfo.font;
+    for (let l in lines) {
+        ctx.fillText(lines[l], 0, canvasInfo.lineHeight*(parseInt(l)+1));
+    }
+    obj.height = canvasInfo.height;
+    obj.width = ctx.canvas.width;
   }
   
-  function loadCanvasText(gl, canvasImages, mainCanvas){
-    let keys = Object.keys(canvasImages);
+  function reloadCanvasText(gl, obj, mainCanvas){
+      setCanvasText(obj, obj.texture, mainCanvas);
+    gl.bindTexture(gl.TEXTURE_2D, obj.texture.texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, obj.texture.canvas);
+  }
+  
+  function loadCanvasText(gl, objects, mainCanvas){
+    let keys = Object.keys(objects);
     for (let k in keys) {
-      let kkey = keys[k];
-      if (canvasImages[kkey].text === undefined ){ continue; }
-      let img = canvasImages[kkey].img;
+      let obj = objects[keys[k]];
+      if (obj.texture.text === undefined) { continue; }
       let ctx = document.createElement('canvas',  {alpha: true} ).getContext("2d");
-      setCanvasText(ctx, canvasImages[kkey], mainCanvas);
-      canvasImages[kkey].ctx = ctx;
-      canvasImages[kkey].canvas = ctx.canvas;
-      var texture = gl.createTexture();
-      canvasImages[kkey].texture = blankTexture(gl);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, ctx.canvas);
+      obj.texture.ctx = ctx;
+      setCanvasText(obj, obj.texture, mainCanvas);
+      obj.texture.canvas = ctx.canvas;
+      let texture = gl.createTexture();
+      obj.texture.texture = blankTexture(gl);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, obj.texture.canvas);
     }
   }
   function loadUnis(gl, program, unis) {
@@ -352,6 +372,7 @@ var wgl = (function () {
         //         offset: 0             // offset from beginning
         //   }, etc...
           // }
+    reloadCanvasText: reloadCanvasText, 
     loadCanvasText: loadCanvasText,
     loadCanvasImages: loadCanvasImages, 
         // gl, canvasImages
@@ -398,7 +419,6 @@ var wgl = (function () {
     loader: loader
   };
 })();
-
 
 
 

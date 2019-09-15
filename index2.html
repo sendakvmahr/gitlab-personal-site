@@ -6,7 +6,7 @@
 	<script type="text/javascript" src="./js/util.js"></script>
 </head>
 <body>
-	<div style="
+	<div id="canvasContainer" style="
 		position: absolute;
 		top: 0;bottom: 0; ;left: 0; right: 0; 
 		/*background: url('./images/Wire Loop.png');*/
@@ -107,141 +107,215 @@
     
 
     <script>
-	function calcLuminosity(r, g, b) {
-		return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
-	}
+function calcLuminosity(r, g, b) {
+    return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+}
 
-         
-    function main() {
-        var images = {
-            loader: "http://vivianmahr.com/images/stars.png"
-        }
-        var passInImages = {
-        }
- 
-		function renderStart(passInImages) {
-		    var canvas = document.getElementById("canvas");
-		    var gl = canvas.getContext("webgl", {antialias: false, premultipliedAlpha: true });
-		    if (!gl) { return; }
-		    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-		    gl.enable(gl.BLEND)
-		    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		    gl.clearColor(0, 0, 0, 0);
-		    var program = wgl.shadersToProgram(gl, document.getElementById("vshader2d").text, document.getElementById("fgshader2d").text);
 
-		    var setters = wgl.createSetters(gl, program);
-		    var canvasImages = {
-		      loader: {
-		        img: passInImages.loader,
-		        ctx: "", 
-		        canvas: "",
-		        texture: ""
-		      },
-		      text: {        
-		        text: `Hello! I'm Sendak Vivian Mahr. What would you like to know?
-						I heard you're a programmer. 
+function main() {
+    var images = {
+        //            loader: "http://vivianmahr.com/images/stars.png"
+        loader: "https://cdn.discordapp.com/avatars/226540267958697984/25692bf4d4142ec75bd4ad9d81b6419f.png"
+    }
+
+    function renderStart(passInImages) {
+        var canvas = document.getElementById("canvas");
+        var gl = canvas.getContext("webgl", {
+            antialias: false,
+            premultipliedAlpha: true
+        });
+        if (!gl) {
+            return;
+        }
+        var rect = canvas.getBoundingClientRect();
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        gl.enable(gl.BLEND)
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.clearColor(0, 0, 0, 0);
+        resize(gl);
+        var program = wgl.shadersToProgram(gl, document.getElementById("vshader2d").text, document.getElementById("fgshader2d").text);
+
+        var setters = wgl.createSetters(gl, program);
+        var canvasImages = {
+            loader: {
+                img: passInImages.loader,
+                ctx: "",
+                canvas: "",
+                texture: ""
+            }
+        }
+        wgl.loadCanvasImages(gl, canvasImages);
+        //		wgl.loadCanvasText(gl, canvasImages, canvas);
+
+        var objects = [{
+                scale: [4.5, 4.5],
+                translation: [(canvas.clientWidth - canvasImages.loader.canvas.width) / 2, (canvas.clientHeight - canvasImages.loader.canvas.height) / 2],
+                rotation: 45 * Math.PI / 180,
+                program: program,
+                texture: canvasImages.loader,
+                height: canvasImages.loader.canvas.height,
+                width: canvasImages.loader.canvas.width,
+                primitive: gl.TRIANGLES,
+                offset: 0,
+                count: 6,
+            },
+            {
+                label: "textElement",
+                scale: [1, 1],
+                translation: [0, 0],
+                rotation: 0,
+                program: program,
+                texture: {
+                    text: `Hello! I'm Sendak Vivian Mahr. What would you like to know?`,
+                    /*I heard you're a programmer. 
 						Can I see some site you've designed?
 						Did you draw all this?
-						I want to talk about something else. `, 
-		        ctx: "", 
-		        canvas: "",
-		        width: 1,
-		        texture: "",
-		        color: "#FFFFFF",
-		        font: "30px serif",
-		        lineHeight: 30
-		      }
-		    } 
-			wgl.loadCanvasImages(gl, canvasImages);
-			wgl.loadCanvasText(gl, canvasImages, canvas);
-    
-		    var objects = [{
-		      scale:[4.5, 4.5],
-		      translation: [(canvas.clientWidth-canvasImages.loader.canvas.width)/2, (canvas.clientHeight-canvasImages.loader.canvas.height)/2],
-		      rotation: 45*Math.PI / 180,
-		      program: program,
-		      texture: canvasImages.loader,
-		      height: canvasImages.loader.canvas.height,
-		      width: canvasImages.loader.canvas.width,
-		      primitive: gl.TRIANGLES,
-		      offset: 0,
-		      count: 6,
-		    },/*
-		    {
-		      scale:[1, 1],
-		      translation: [0, 0],
-		      rotation: 0,
-		      program: program,
-		      texture: canvasImages.text,
-		      height: canvasImages.text.canvas.height,
-		      width: canvasImages.text.canvas.width,
-		      primitive: gl.TRIANGLES,
-		      offset: 0,
-		      count: 6,
-		    }*/
-		    ];
-    
-    
-    		var counter = 0;
-		    function resize(gl){ 
-		      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height); 
-		      // hehe
-		      canvas.width  = canvas.clientWidth/2;
-		      canvas.height = canvas.clientHeight/2;
-		      //wgl.resizeCanvasToDisplaySize(gl.canvas);
-		    };
-    
-		    function clear(gl){ gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); }
-		    
-		    draw();
-		    
-		    function draw(name) {
-		      if (canvas.matches(':hover')) { window.requestAnimationFrame(draw); return; }
-		      // Necessary start of draw loop
-		      resize(gl);
-		      clear(gl);
-		      let unis = {},
-		          atts = {},
-		          matrix = wgl.m3.projection( gl.canvas.clientWidth, gl.canvas.clientHeight);
-		      
-		      // Calculations to be run every loop, ~ 60 fps
-		      //objects[1].rotation += Math.PI/180;
-		      objects[0].rotation -= Math.PI/180;
-		      
-		      // Render every object. Should be a tree but we're not doing scenegraphs yet
-		      for (let o in objects) {
-		        let obj = objects[o];
-		        gl.useProgram(obj.program);
-		        unis.u_textureSize = [obj.texture.canvas.width, obj.texture.canvas.height];
-		        
-		        
-		        let matrix2 = wgl.m3.translate(matrix, obj.translation[0], obj.translation[1]);
-		        matrix2 = wgl.m3.translate(matrix2, obj.width/2, obj.height/2);
-		        matrix2 = wgl.m3.rotate(matrix2, obj.rotation);        
-		        matrix2 = wgl.m3.scale(matrix2, obj.scale[0], obj.scale[1]);
-		        unis.u_matrix = wgl.m3.translate(matrix2, -obj.width/2, -obj.height/2);
-		   
+						I want to talk about something else. `, */
+                    ctx: null,
+                    canvas: null,
+                    width: 1, // fraction of the main canvas it should take up
+                    texture: null,
+                    color: "#005500",
+                    // there should be a backup pixel font if it falls below a certian height. I don't even care, normal fonts are butt ugly resized. 
+                    font: "40px sans-serif",
+                    lineHeight: 40
+                },
+                height: canvas.clientHeight, // how big it it on client
+                width: canvas.clientWidth, // how big it it on client
+                primitive: gl.TRIANGLES,
+                offset: 0,
+                count: 6,
+                isHover: false,
+                onHover: function() {
+                    this.texture.bgColor = "#FF0000";
+                    wgl.reloadCanvasText(gl, this, canvas);
+                },
+                offHover: function() {
+                    this.texture.bgColor = null;
+                    wgl.reloadCanvasText(gl, this, canvas);
+                },
+                onClick: function() {
+                    console.log("this element has been clicked");
+                }
+            }
+        ];
+        wgl.loadCanvasText(gl, objects, canvas);
 
-		        // Set rect for object to be rendered in
-		        atts.a_position = {numComponents: 2, data: new Float32Array(wgl.m3.setRectangle(0, 0, obj.width, obj.height)) };
-		        // Sets texture coord - NOTE THIS SHOULD BE CHANGED FOR ARGUMENTS LATER FOR SPRITESHEETS
-		        atts.a_texCoord = {numComponents: 2, data: new Float32Array(wgl.setTextureCoord()) };
-		        
-		        // actually setting up the unis and atts 
-		        for (let u in unis){
-		          if (setters.uni[u] === undefined){ continue; } 
-		          setters.uni[u](unis[u]);
-		        }
-		        for (let a in atts){
-		          if (setters.att[a] === undefined){ continue; } 
-		          setters.att[a](atts[a]);
-		        }
-		        gl.bindTexture(gl.TEXTURE_2D, obj.texture.texture);
-		        gl.drawArrays(obj.primitive, obj.offset, obj.count);
-		      }
-		      counter++;
-		      window.requestAnimationFrame(draw)
-		    }
+
+        function pointCollision(obj, x, y) {
+            // doesn't take rotation or scale into account
+            return (x <= obj.translation[0] + obj.width && x >= obj.translation[0]) && (y <= obj.translation[1] + obj.height && y >= obj.translation[1])
+        }
+
+        function mousePosition(event, canvas) {
+            let rect = canvas.getBoundingClientRect();
+            return [event.clientX - rect.left, event.clientY - rect.top];
+        }
+        document.getElementById("canvasContainer").addEventListener('click', function(e) {
+            let [elx, ely] = mousePosition(e, canvas);
+            for (let o in objects) {
+                let obj = objects[o];
+                if (obj.onClick !== undefined) {
+                    if (pointCollision(obj, elx, ely)) {
+                        obj.onClick();
+                    }
+                }
+            }
+        });
+        document.getElementById("canvasContainer").addEventListener("mousemove", function(e) {
+
+            let [elx, ely] = mousePosition(e, canvas);
+            for (let o in objects) {
+                let obj = objects[o];
+                if (obj.onHover !== undefined) {
+                    let collide = pointCollision(obj, elx, ely);
+                    if (!obj.isHover && collide) {
+                        obj.onHover();
+                        obj.isHover = !obj.isHover;
+                    } else if (obj.isHover && !collide) {
+                        obj.offHover();
+                        obj.isHover = !obj.isHover;
+                    }
+                }
+            }
+        });
+
+        function resize(gl) {
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            // hehe
+            canvas.width = canvas.clientWidth / 4;
+            canvas.height = canvas.clientHeight / 4;
+            //wgl.resizeCanvasToDisplaySize(gl.canvas);
+        };
+
+        var counter = 0;
+
+        function clear(gl) {
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        }
+
+        draw();
+
+        function draw(name) {
+            if (canvas.matches(':hover')) {
+                window.requestAnimationFrame(draw);
+                return;
+            }
+            // Necessary start of draw loop
+            resize(gl);
+            clear(gl);
+            let unis = {},
+                atts = {},
+                matrix = wgl.m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
+
+            // Calculations to be run every loop, ~ 60 fps
+            //objects[1].rotation += Math.PI/180;
+            objects[0].rotation -= Math.PI / 180;
+
+            // Render every object. Should be a tree but we're not doing scenegraphs yet
+            for (let o in objects) {
+                let obj = objects[o];
+                gl.useProgram(obj.program);
+                unis.u_textureSize = [obj.texture.canvas.width, obj.texture.canvas.height];
+
+
+                let matrix2 = wgl.m3.translate(matrix, obj.translation[0], obj.translation[1]);
+                matrix2 = wgl.m3.translate(matrix2, obj.width / 2, obj.height / 2);
+                matrix2 = wgl.m3.rotate(matrix2, obj.rotation);
+                matrix2 = wgl.m3.scale(matrix2, obj.scale[0], obj.scale[1]);
+                unis.u_matrix = wgl.m3.translate(matrix2, -obj.width / 2, -obj.height / 2);
+
+
+                // Set rect for object to be rendered in
+                atts.a_position = {
+                    numComponents: 2,
+                    data: new Float32Array(wgl.m3.setRectangle(0, 0, obj.width, obj.height))
+                };
+                // Sets texture coord - NOTE THIS SHOULD BE CHANGED FOR ARGUMENTS LATER FOR SPRITESHEETS
+                atts.a_texCoord = {
+                    numComponents: 2,
+                    data: new Float32Array(wgl.setTextureCoord())
+                };
+
+                // actually setting up the unis and atts 
+                for (let u in unis) {
+                    if (setters.uni[u] === undefined) {
+                        continue;
+                    }
+                    setters.uni[u](unis[u]);
+                }
+                for (let a in atts) {
+                    if (setters.att[a] === undefined) {
+                        continue;
+                    }
+                    setters.att[a](atts[a]);
+                }
+                gl.bindTexture(gl.TEXTURE_2D, obj.texture.texture);
+                gl.drawArrays(obj.primitive, obj.offset, obj.count);
+            }
+            counter++;
+            window.requestAnimationFrame(draw)
+        }
     }
     wgl.loader(images, renderStart);
 }
@@ -257,8 +331,8 @@ main();
 
         canvas {
           border: 1px solid #FF0000;
-          width: 400px;
-          height: 400px;
+          width: 100%;
+          height: 100vh;
 			image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
 			image-rendering: -moz-crisp-edges;          /* Firefox                        */
 			image-rendering: -o-crisp-edges;            /* Opera                          */
