@@ -115,7 +115,8 @@ function calcLuminosity(r, g, b) {
 function main() {
     var images = {
         //            loader: "http://vivianmahr.com/images/stars.png"
-        loader: "https://cdn.discordapp.com/avatars/226540267958697984/25692bf4d4142ec75bd4ad9d81b6419f.png"
+        loader: "https://cdn.discordapp.com/icons/578316321758904320/2092062007b5a71b5a68e25a50375835.webp"
+        //loader: "https://i.imgur.com/zCQSVFV.jpg"
     }
 
     function renderStart(passInImages) {
@@ -133,7 +134,7 @@ function main() {
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.clearColor(0, 0, 0, 0);
         resize(gl);
-        var program = wgl.shadersToProgram(gl, document.getElementById("vshader2d").text, document.getElementById("fgshader2d").text);
+        var program = wgl.shadersToProgram(gl, document.getElementById("vshader2d").text, document.getElementById("luminosityDiff").text);
 
         var setters = wgl.createSetters(gl, program);
         var canvasImages = {
@@ -249,6 +250,40 @@ function main() {
         };
 
         var counter = 0;
+        var palettes = [
+        	[
+				0,0,0,1,
+				1,1,1,1,
+				0.3953799176397176, 0.27628540112228817, 0.21932623834549592, 1,
+				0.7094503110877731, 0.7679715163719505, 0.8718641650469261, 1,
+			], 
+			[
+				0.3190165897171239, 0.279010264177895, 0.759049205017336, 1,
+				0.7113594655791933, 0.8308911528522663, 0.13946166664652482, 1,
+				0.8353157607669144, 0.5454495305810343, 0.3919509248339327, 1,
+				0.7850384190827203, 0.45928561369173637, 0.31719540362545795, 1,
+			],
+			[
+				0.4799374647641642, 0.8311399988803204, 0.1317888856538847, 1,
+				0.06848251468564415, 0.43741428141659955, 0.04648827957505419, 1,
+				0.8685688831680225, 0.8108286924880623, 0.8265540361523411, 1,
+				0.4940587311002901, 0.6484714049472903, 0.41227493980532004, 1
+			],
+			[
+				0.014286213418056581, 0.20435083534177123, 0.7292034051016667, 1,
+				0.8887428400200774, 0.4191383812501698, 0.3635952527028302, 1,
+				0.5356493762329001, 0.09527064021706055, 0.5312217231910571, 1,
+				0.6856086498427222, 0.9719182310479099, 0.03856667531801006, 1
+			]
+        ]
+        var luminosity = [];
+		for (let p in palettes) {
+			let palette = palettes[p];
+			for (let n = 0; n<palette.length; n+=4) {
+				luminosity.push(calcLuminosity(palette[n], palette[n+1], palette[n+2]));
+			}
+		}
+
 
         function clear(gl) {
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -277,6 +312,11 @@ function main() {
                 let obj = objects[o];
                 gl.useProgram(obj.program);
                 unis.u_textureSize = [obj.texture.canvas.width, obj.texture.canvas.height];
+                unis.u_luminosity = luminosity;
+                unis.u_palette0 = palettes[0];
+                unis.u_palette1 = palettes[1];
+                unis.u_palette2 = palettes[2];
+                unis.u_palette3 = palettes[3];
 
 
                 let matrix2 = wgl.m3.translate(matrix, obj.translation[0], obj.translation[1]);
