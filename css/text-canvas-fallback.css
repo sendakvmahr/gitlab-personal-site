@@ -1,0 +1,9 @@
+text-canvas {
+    background: red;
+    display: block;
+    width: 20; 
+    height: 20px;
+}
+body {
+    background: green;
+}
