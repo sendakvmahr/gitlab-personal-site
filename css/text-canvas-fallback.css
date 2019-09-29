@@ -1,9 +1,30 @@
-text-canvas {
-    background: red;
-    display: block;
-    width: 20; 
-    height: 20px;
+text-canvas>div{
+	display: block;
+	text-align: center;
+	/* font-family: what is that font I use currently, use it again*/
 }
+.boxed {
+	background: #f7d878;
+	background-size: 6px;
+	padding: 10px;
+	border: 16px solid transparent;
+	border-image: url("../images/border.png");
+	border-image-slice: 8;
+	border-image-repeat: round;
+}
+
+text-canvas>div>a {
+	display: block;
+	text-decoration: none;
+	color: black;
+}
+text-canvas>div:hover a{
+	display: block;
+	text-align: center;
+	background: grey;
+}
+
 body {
-    background: green;
+    background: url(../images/stars.png);
+    background-size: calc(129px * 2);
 }

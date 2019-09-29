@@ -7,12 +7,14 @@
         <script> const CAN_SHADOW = !!(document.head.attachShadow || document.head.createShadowRoot);</script>
 	    <link href="./css/normalize.css" rel="stylesheet" type="text/css"></head>
 	    <link href="./css/skeleton.css" rel="stylesheet" type="text/css"></head>
+		<link href="https://fonts.googleapis.com/css?family=Alice|Playfair+Display" rel="stylesheet"> 
+
     </head>
     <body>
         <div class="container">
             <div class="row">
                 <div class="sixteen columns">
-                	<text-canvas data-scale=3 data-font="24px Times New Roman">
+                	<text-canvas data-scale=3 data-font="36px Playfair Display" style="color: white">
                 		Sendak V. Mahr
                 	</text-canvas>
                     
@@ -22,14 +24,14 @@
             </div>
             <div class="row">
                 <div class="five columns">&nbsp;</div>
-                <div class="menu six columns">
-                    <text-canvas data-scale=3 data-font="13px Arial">
+                <div class="boxed menu six columns">
+                    <text-canvas data-scale=2 data-font="12px Playfair Display">
                         Test no href
                     </text-canvas> <!-- Make 12 the cutoff to use a pixel font" -->
-                    <text-canvas data-scale=3 href="#" data-font="12px Arial">
+                    <text-canvas data-scale=2 href="#" data-font="12px Playfair Display">
                         This is some sample text. Now I just need to keep on typing and typing so it's longer than the screen to double check that it is working. 
                     </text-canvas>
-                    <text-canvas data-scale=3 href="#" data-font="13px Arial">
+                    <text-canvas data-scale=2 href="#" data-font="12px Playfair Display">
                         More sample text.
                     </text-canvas>
                 </div>
@@ -72,7 +74,8 @@
     </script>
     
     <script>
-    if (CAN_SHADOW) {
+	function initTextCanvas() {
+    if (CAN_SHADOW && typeof ResizeObserver === "function") {
         class TextCanvas extends HTMLElement {
             constructor(){
                 super();
@@ -191,13 +194,40 @@
         customElements.define('text-canvas', TextCanvas);
     } else {
         //fallback css
-        var head = document.getElementsByTagName('HEAD')[0];  
-        var link = document.createElement('link'); 
+        let head = document.getElementsByTagName('HEAD')[0];  
+        let link = document.createElement('link');         
+        let canvases = document.querySelectorAll("text-canvas");
+        for (let c=0; c<canvases.length; c++) {
+        	let canvas = canvases[c];
+			const scaleFactor = parseInt(canvas.getAttribute("data-scale"));
+			const divWrapper = document.createElement("div");
+			const linkWrapper = document.createElement("a");
+			var font = canvas.getAttribute("data-font");
+			var fontIndex = font.indexOf("px");
+			font = (parseInt(font.substring(0, fontIndex)) * 2) + font.substring(fontIndex, font.length);
+			const text = canvas.innerHTML.trim();
+			divWrapper.setAttribute("style", "font: " + font);
+            let link = canvas.getAttribute("href");
+			if (link !== null) {
+				linkWrapper.setAttribute("href", link);
+				linkWrapper.innerHTML = text;
+				canvas.innerHTML = "";
+				divWrapper.appendChild(linkWrapper);
+				canvas.appendChild(divWrapper);
+			} else {
+				divWrapper.innerHTML = text;
+				canvas.innerHTML = "";
+				canvas.appendChild(divWrapper);
+			};
+
+        }
         link.rel = 'stylesheet';
         link.type = 'text/css';
-        link.href = './text-canvas-fallback.css';
+        link.href = './css/text-canvas-fallback.css';
         head.appendChild(link);
     }
+	}
+	document.fonts.ready.then(initTextCanvas)
     </script>
     <style>
     * {
@@ -208,6 +238,35 @@
         image-rendering: pixelated;                 /* Awesome future-browsers       */
         -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
     }
+	text-canvas>div{
+		display: block;
+		text-align: center;
+		margin: 10px 5px;
+		/* font-family: what is that font I use currently, use it again*/
+	}
+	.boxed {
+		background: #f7d878;
+		padding: 10px;
+		border: 16px solid transparent;
+		border-image: url("./images/border.png");
+		border-image-slice: 8;
+	}
+
+	text-canvas>div>a {
+		display: block;
+		text-decoration: none;
+		color: black;
+	}
+	text-canvas>div:hover a{
+		display: block;
+		text-align: center;
+		background: grey;
+	}
+
+	body {
+	    background: url(./images/stars.png);
+	    background-size: calc(129px * 2);
+	}
     </style>
 <!-- 
 modernizr
