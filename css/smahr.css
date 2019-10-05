@@ -1,0 +1,34 @@
+* {
+    image-rendering: optimizeSpeed;             /* Older versions of FF          */
+    image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+    image-rendering: -webkit-optimize-contrast; /* Safari                        */
+    image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+    image-rendering: pixelated;                 /* Awesome future-browsers       */
+    -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+}
+body {
+    background: url(../images/stars.png);
+    background-size: calc(129px * 2);
+}
+text-canvas>div{
+	display: block;
+	text-align: center;
+	margin: 10px 5px;
+	/* font-family: what is that font I use currently, use it again*/
+}
+text-canvas>div>a {
+	display: block;
+	text-decoration: none;
+	color: black;
+}
+text-canvas>div:hover a{
+	display: block;
+	text-align: center;
+	background: grey;
+}
+.boxed {
+	background: #f7d878;
+	border: 16px solid transparent;
+	border-image: url("../images/border.png");
+	border-image-slice: 8;
+}
