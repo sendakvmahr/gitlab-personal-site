@@ -1,48 +1,43 @@
 <!DOCTYPE html>
 <html>
     <head>
-	    <meta charset="UTF-8">
-	    <meta name="viewport" content="width=device-width,initial-scale=1">
-	    <title>Sendak Mahr - Home</title>
-        <script> const CAN_SHADOW = !!(document.head.attachShadow || document.head.createShadowRoot);</script>
-	    <link href="./css/normalize.css" rel="stylesheet" type="text/css"></head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Sendak Mahr - Home</title>
+        <link href="./css/normalize.css" rel="stylesheet" type="text/css"></head>
         <link href="./css/skeleton.css" rel="stylesheet" type="text/css"></head>
         <link href="./css/smahr.css" rel="stylesheet" type="text/css"></head>
-		<link href="https://fonts.googleapis.com/css?family=Alice|Playfair+Display" rel="stylesheet"> 
+        <link href="https://fonts.googleapis.com/css?family=Alice|Playfair+Display" rel="stylesheet"> 
 
     </head>
     <body>
         <div class="container">
             <div class="row">
-                <div class="sixteen columns">
-                	<text-canvas data-scale=3 data-font="36px Playfair Display" style="color: white">
-                		Sendak V. Mahr
-                	</text-canvas>
-                    
-                    <!-- So I imagine two text areas, with premade tails sticking out
-                    then positioning them based on the tails-->
+                <br/>
+                <div class="two columns">&nbsp;</div>
+                <div class="twelve columns boxed">
+                    <h1>Sendak V. Mahr</h1>
                 </div>
             </div>
             <div class="row">
-                <div class="five columns">&nbsp;</div>
-                <div class="boxed menu six columns">
-                    <text-canvas data-scale=2 data-font="12px Playfair Display">
-                        Test no href
-                    </text-canvas> <!-- Make 12 the cutoff to use a pixel font" -->
-                    <text-canvas data-scale=2 href="#" data-font="12px Playfair Display">
-                        This is some sample text. Now I just need to keep on typing and typing so it's longer than the screen to double check that it is working. 
-                    </text-canvas>
-                    <text-canvas data-scale=2 href="#" data-font="12px Playfair Display">
-                        More sample text.
-                    </text-canvas>
+                <div class="two columns">&nbsp;</div>
+                <div class="boxed menu twelve columns">
+                    <div class="six columns alpha omega"><p>Hello. How did you find me?</p></div>
+                    <div id="text-bubble"class="six columns alpha omega center">
+                        <a href="#"><p>I heard you're a programmer. Can I see <span class="emphasize-link">your work?</span></p></a>
+                        <a href="#"><p>I wanted to see your <span class="emphasize-link">pixel art.</span></p></a>
+                        <a href="#"><p><span class="emphasize-link">Who are you?</span></p></a>
+                        <a href="#"><p>How do I <span class="emphasize-link">contact you?</span></p></a>
+                    </div>
                 </div>
             </div>
         </div>
     </body>
 
+
+<!-- 
     <script src="./js/util.js" type="text/javascript"></script>
     <script src="./js/text-canvas.js" type="text/javascript"></script>
-<!-- 
 modernizr
     multilines...
     shadow dom...

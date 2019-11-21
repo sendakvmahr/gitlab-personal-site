@@ -7,8 +7,11 @@
     -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
 }
 body {
-    background: url(../images/stars.png);
-    background-size: calc(129px * 2);
+    background: url(../images/grass_big.png), url(../images/stars.png);
+    background-position: left bottom, center;
+    background-repeat: repeat-x, repeat;
+    background-size: calc(60px * 3), calc(129px * 3);
+    min-height: 100vh;
 }
 text-canvas>div{
 	display: block;
@@ -32,3 +35,40 @@ text-canvas>div:hover a{
 	border-image: url("../images/border.png");
 	border-image-slice: 8;
 }
+h1, h2, h3, h4, h5, h6 {
+	font-family: "Playfair Display";
+	font-size: 36px;
+	text-align: left;
+}
+.center{
+	text-align: center;
+}
+#text-bubble {
+	background: white;
+	border-radius: 20px;
+	position: relative;
+}
+#text-bubble:after {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	width: 0;
+	height: 0;
+	border: 1.188em solid transparent;
+	border-right-color: #FFFFFF;
+	border-left: 0;
+	margin-top: -1.187em;
+	margin-left: -1.187em;
+}
+#text-bubble a { 
+	text-decoration: none; 
+	display: block;
+	padding: 0 20px;
+}
+#text-bubble a:hover p {
+	background: blue;
+}
+
+
+#text-bubble a .emphasize-link{ text-decoration: underline; }
